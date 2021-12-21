@@ -1,0 +1,15 @@
+server/.buildpath
+server/.settings/
+server/.project
+server/.run
+server/*.patch
+server/.idea/
+server/.git/
+server/runtime/
+server/vendor/
+server/.phpintel/
+server/.env
+server/.DS_Store
+server/.phpunit*
+server/*.cache
+server/composer.lock

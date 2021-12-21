@@ -1,0 +1,22 @@
+<?php
+
+declare(strict_types = 1);
+
+
+namespace %NAMESPACE%;
+
+
+
+interface %CLASS%Interface
+{
+
+    public function getModel(): \Hyperf\DbConnection\Model\Model;
+
+    public function listPage($pageSize, $filter): \Hyperf\Contract\LengthAwarePaginatorInterface;
+
+    public function createSingleData($data): array;
+
+    public function details($id): array;
+
+    public function updateSingleData($id, $data): array;
+}

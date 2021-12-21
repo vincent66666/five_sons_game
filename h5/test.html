@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Socket接口测试</title>
+</head>
+
+<body>
+
+<input type="text" name="room_name" value="" id="room_name">
+<input type="button" name="测试" value="测试创建房间" onclick="addRoom()">
+
+<div>
+
+</div>
+
+
+<table id="room_list">
+    <thead>
+    <tr>
+        <th>房间号</th>
+        <th>房间名称</th>
+        <th>房主</th>
+        <th>操作</th>
+        <th>创建时间</th>
+        <th>更新时间</th>
+    </tr>
+    </thead>
+</table>
+
+
+</body>
+<script src="https://cdn.bootcss.com/socket.io/2.3.0/socket.io.js"></script>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<script>
+
+    var socketConfig = {
+        token: 'eyJ0eXAiOiJqd3QifQ.eyJzdWIiOiIxIiwiaXNzIjoiaHR0cDpcL1wvOiIsImV4cCI6MTYzMjY5MTk0NiwiaWF0IjoxNjMyNDc1OTQ2LCJuYmYiOjE2MzI0NzU5NDYsInVpZCI6MSwicyI6IklkU1NIMSIsImp0aSI6ImM5ODNiMjZjNTM3NzliYWExN2FkODg2MjI4ODUxNWI2In0.JDJ5JDEwJG1hV3pqUWs3Qkt1VGhZd0hjNUtkcGVWOXUxd1UxQ1VCQU1pYmJOblNqVHNON01zNkxhMzBT'
+    };
+
+    var handshake = io('ws://127.0.0.1:9509/handshake?token='+socketConfig.token, { transports: ["websocket"],token: socketConfig.token });
+
+    handshake.on('connect', data => {
+        handshake.emit("receive", socketConfig, console.log);
+    }, console.log);
+    // handshake.on('receive', console.log);
+
+    var room = io('ws://127.0.0.1:9509/room?token='+socketConfig.token, { transports: ["websocket"] });
+    room.on('connect', data => {
+        room.emit("lists", socketConfig, data => {
+            deleteTbody();
+            var jsonData = JSON.parse(data);
+            var list = jsonData.data;
+
+            console.log(list);
+            var oTable = document.getElementById("room_list");
+            //创建tbody
+            var oTbody = document.createElement("tbody");
+            oTable.appendChild(oTbody);
+
+
+            $.each(list,function(index,value){
+                addRow(oTbody,value);
+            });
+            console.log(oTbody);
+        });
+    });
+    // room.on('store', console.log);
+    room.on('store', console.log);
+    room.on('lists', data => {
+        var jsonData = JSON.parse(data);
+        var list = jsonData.data;
+        deleteTbody();
+        var oTable = document.getElementById("room_list");
+        //创建tbody
+        var oTbody = document.createElement("tbody");
+        oTable.appendChild(oTbody);
+
+
+        $.each(list,function(index,value){
+            addRow(oTbody,value);
+        });
+        console.log(oTbody);
+    });
+    room.on('message', console.log);
+
+
+    function addRoom() {
+        var roomName = document.getElementById('room_name').value;
+
+        console.log(roomName);
+
+        room.emit("store", {
+            title: roomName
+        }, console.log);
+
+    }
+
+    function showRoom(id) {
+        room.emit("show", {id: id}, data => {
+            console.log(data);
+        });
+    }
+
+
+    function joinRoom(id) {
+        room.emit("show", {id: id}, data => {
+            console.log(data);
+        });
+    }
+
+
+    function watchRoom(id) {
+        room.emit("show", {id: id}, data => {
+            console.log(data);
+        });
+    }
+
+    function addRow(oTbody, value) {
+        // /创建表格第一行
+        var oTR_1 = document.createElement("tr");
+        oTbody.appendChild(oTR_1);
+
+        var oTD_1 = document.createElement("td");
+        oTD_1.appendChild(document.createTextNode(value.id));
+        oTR_1.appendChild(oTD_1);
+
+
+        var oTD_2 = document.createElement("td");
+        oTD_2.appendChild(document.createTextNode(value.title));
+        oTR_1.appendChild(oTD_2);
+
+
+        var oTD_3 = document.createElement("td");
+        oTD_3.appendChild(document.createTextNode(value.player1.username));
+        oTR_1.appendChild(oTD_3);
+
+
+
+
+        var oTD_6 = document.createElement("td");
+        var newInput1 = document.createElement("input");
+        newInput1.type="button";
+        newInput1.name="测试";
+        newInput1.value="参战";
+        newInput1.setAttribute("onclick", "joinRoom("+value.id+")");
+        console.log(newInput1);
+
+        var newInput2 = document.createElement("input");
+        newInput2.type="button";
+        newInput2.name="测试";
+        newInput2.value="观战";
+        newInput2.setAttribute("onclick", "watchRoom("+value.id+")");
+        console.log(newInput2);
+
+
+        oTD_6.appendChild(newInput1);
+        oTD_6.appendChild(newInput2);
+        oTR_1.appendChild(oTD_6);
+
+
+        var oTD_4 = document.createElement("td");
+        oTD_4.appendChild(document.createTextNode(value.updated_at));
+        oTR_1.appendChild(oTD_4);
+
+
+        var oTD_5 = document.createElement("td");
+        oTD_5.appendChild(document.createTextNode(value.created_at));
+        oTR_1.appendChild(oTD_5);
+
+    }
+    function deleteTbody(){
+        var oTable = document.getElementById("room_list");
+        if(!oTable){
+            return;
+        }
+        var oTbody = oTable.getElementsByTagName("tbody");
+        for(var i = 0; i < oTbody.length; i++){
+            if(oTbody[i]){
+                oTable.removeChild(oTbody[i]);
+            }
+
+        }
+    }
+
+</script>
+</html>

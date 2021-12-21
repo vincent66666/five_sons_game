@@ -1,0 +1,35 @@
+<?php
+
+declare(strict_types = 1);
+
+namespace %NAMESPACE%;
+
+use App\Repository\Repository;
+
+class %CLASS%Repository extends Repository implements %CLASS%Interface
+{
+    public string $table = %CLASS%::class;
+
+    public function listPage($pageSize, $filter): \Hyperf\Contract\LengthAwarePaginatorInterface
+    {
+        return $this->getModel()::query()
+            ->when($filter, function ($query) use ($filter) {
+            })
+            ->paginate($pageSize);
+    }
+
+    public function createSingleData($data): array
+    {
+        return $this->createBy($data);
+    }
+
+    public function details($id): array
+    {
+        return $this->getModel()::query()->find($id)->toArray();
+    }
+
+    public function updateSingleData($id, $data): array
+    {
+        return $this->updateOneBy(['id' => $id], $data);
+    }
+}
